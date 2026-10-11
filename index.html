@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Placa Perdida | Ache o Dono da Placa e Contato WhatsApp</title>
+  <meta name="description" content="Encontrou uma placa de veículo na rua, carro com alarme disparado ou precisa contatar o motorista? Localize o proprietário no Placa Perdida e mande um WhatsApp direto sem burocracia do Detran.">
+  <meta name="keywords" content="placa perdida, achar placa na rua, alarme disparado, esbarrei no carro, consultar placa, whatsapp motorista">
+  <meta name="author" content="Placa Perdida Comunitário">
+  
+  <!-- Open Graph / Redes Sociais -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Placa Perdida - Ache o Dono da Placa sem Burocracia">
+  <meta property="og:description" content="Localize o proprietário e envie mensagem rápida no WhatsApp caso encontre uma placa ou precise avisar sobre alarme disparado ou incidente.">
+  <meta property="og:locale" content="pt_BR">
+
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       Header & Barra de Navegação
+       ========================================================================== -->
+  <header class="header" id="mainHeader">
+    <div class="container header-content">
+      <a href="#heroSection" class="brand" id="brandLogo">
+        <div class="brand-icon">🔍</div>
+        <div class="brand-text">
+          <span class="brand-title">Placa Perdida</span>
+          <span class="brand-tagline">Rede Cidadã de Veículos</span>
+        </div>
+      </a>
+
+      <nav class="nav-links" id="mainNav">
+        <a href="#searchSection" class="nav-btn active" id="navBtnSearch">
+          <span>🔎</span> Buscar Placa
+        </a>
+        <a href="#registerSection" class="nav-btn nav-btn-highlight" id="navBtnRegister">
+          <span>➕</span> Cadastrar Meu Veículo
+        </a>
+        <a href="#tipsSection" class="nav-btn" id="navBtnTips">
+          <span>💡</span> Utilidade Pública
+        </a>
+        <a href="#adsSection" class="nav-btn" id="navBtnAds">
+          <span>📢</span> Anuncie
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- ==========================================================================
+         Hero Section com Visualizador Dinâmico de Placa
+         ========================================================================== -->
+    <section class="hero" id="heroSection">
+      <div class="container">
+        <div class="badge-pill" id="heroBadge">
+          <span>✨</span> Serviço Comunitário sem Burocracia do Detran
+        </div>
+
+        <h1 class="hero-title" id="mainHeading">
+          Achou uma placa na rua?<br>
+          <span>Conecte-se com o dono no WhatsApp</span>
+        </h1>
+
+        <p class="hero-subtitle" id="heroSub">
+          Uma plataforma colaborativa para quando você encontrar uma placa perdida, presenciar um alarme disparado ou precisar acertar um esbarrão sem complicação.
+        </p>
+
+        <!-- Visualizador Gráfico Realista da Placa (Reativo) -->
+        <div class="plate-preview-wrapper" id="platePreviewWrapper">
+          <div class="plate-graphic" id="plateVisualDisplay">
+            <div class="plate-header">
+              <div class="plate-mercosul-logo">
+                <span>★</span> MERCOSUL
+              </div>
+              <div class="plate-country">BRASIL</div>
+              <!-- Bandeira do Brasil em SVG Autêntica -->
+              <svg class="plate-flag" viewBox="0 0 720 504" xmlns="http://www.w3.org/2000/svg">
+                <rect width="720" height="504" fill="#009b3a"/>
+                <polygon points="360,37.8 682.2,252 360,466.2 37.8,252" fill="#fedf00"/>
+                <circle cx="360" cy="252" r="126" fill="#002776"/>
+              </svg>
+            </div>
+            <div class="plate-body">
+              <div class="plate-watermark"></div>
+              <div class="plate-number-display" id="plateLiveText">BRA2E19</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de Busca de Placa -->
+        <div class="search-card" id="searchSection">
+          <form class="search-form" id="plateSearchForm" onsubmit="event.preventDefault(); window.app.handleSearch();">
+            <div class="search-input-wrapper">
+              <span class="search-icon">🔍</span>
+              <input 
+                type="text" 
+                id="plateSearchInput" 
+                class="search-input" 
+                placeholder="DIGITE A PLACA (EX: BRA2E19)" 
+                maxlength="8" 
+                autocomplete="off"
+                spellcheck="false"
+                required
+              >
+            </div>
+            <button type="submit" class="search-btn" id="btnSearchSubmit">
+              <span>Localizar Dono</span> ➔
+            </button>
+          </form>
+
+          <div class="search-quick-tags" id="searchQuickTags">
+            <span>Testar exemplos rápidos:</span>
+            <button type="button" class="quick-tag-btn" onclick="window.app.fillSearch('BRA2E19')">BRA2E19</button>
+            <button type="button" class="quick-tag-btn" onclick="window.app.fillSearch('ABC1234')">ABC-1234</button>
+            <button type="button" class="quick-tag-btn" onclick="window.app.fillSearch('MOT3A21')">MOT3A21</button>
+          </div>
+        </div>
+
+        <!-- ==========================================================================
+             Área de Resultados (Injetada via JS)
+             ========================================================================== -->
+        <section class="search-results-section" id="resultsSection" aria-live="polite">
+          <div id="resultsContainer"></div>
+        </section>
+
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         Seção de Cadastro do Veículo
+         ========================================================================== -->
+    <section class="section" id="registerSection">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Cadastre seu Veículo em 30 Segundos</h2>
+          <p class="section-subtitle">
+            Proteja seu patrimônio. Se alguém achar sua placa ou precisar avisar sobre alarme disparado, você será acionado diretamente no seu WhatsApp!
+          </p>
+        </div>
+
+        <div class="register-card" id="registerCard">
+          <form id="vehicleRegisterForm" onsubmit="event.preventDefault(); window.app.handleRegister();">
+            <div class="form-grid">
+              
+              <div class="form-group">
+                <label class="form-label" for="regPlate">
+                  <span>🚗</span> Placa do Veículo *
+                </label>
+                <input 
+                  type="text" 
+                  id="regPlate" 
+                  class="form-input form-input-plate" 
+                  placeholder="EX: BRA2E19 ou ABC1234" 
+                  maxlength="8" 
+                  required
+                >
+                <span class="form-hint">Aceita formato Mercosul ou Padrão Antigo</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="regType">
+                  <span>🏷️</span> Tipo de Veículo *
+                </label>
+                <select id="regType" class="form-select" required>
+                  <option value="Carro">Carro / Automóvel</option>
+                  <option value="Moto">Moto / Motocicleta</option>
+                  <option value="Caminhão">Caminhão / Reboque</option>
+                  <option value="Van">Van / Utilitário</option>
+                  <option value="Outro">Outro</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="regModel">
+                  <span>🚙</span> Modelo do Veículo
+                </label>
+                <input 
+                  type="text" 
+                  id="regModel" 
+                  class="form-input" 
+                  placeholder="Ex: Fiat Palio, Honda Civic"
+                >
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="regColor">
+                  <span>🎨</span> Cor do Veículo
+                </label>
+                <input 
+                  type="text" 
+                  id="regColor" 
+                  class="form-input" 
+                  placeholder="Ex: Prata, Preto, Vermelho"
+                >
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="regOwner">
+                  <span>👤</span> Seu Nome ou Apelido *
+                </label>
+                <input 
+                  type="text" 
+                  id="regOwner" 
+                  class="form-input" 
+                  placeholder="Ex: Frederico Alves" 
+                  required
+                >
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="regWhatsapp">
+                  <span>📱</span> WhatsApp com DDD *
+                </label>
+                <input 
+                  type="tel" 
+                  id="regWhatsapp" 
+                  class="form-input" 
+                  placeholder="(34) 99999-9999" 
+                  maxlength="16" 
+                  required
+                >
+                <span class="form-hint">Número onde você receberá as mensagens</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="regCity">
+                  <span>📍</span> Cidade *
+                </label>
+                <input 
+                  type="text" 
+                  id="regCity" 
+                  class="form-input" 
+                  placeholder="Ex: Patos de Minas" 
+                  required
+                >
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="regState">
+                  <span>🗺️</span> Estado (UF) *
+                </label>
+                <select id="regState" class="form-select" required>
+                  <option value="MG">Minas Gerais (MG)</option>
+                  <option value="SP">São Paulo (SP)</option>
+                  <option value="RJ">Rio de Janeiro (RJ)</option>
+                  <option value="DF">Distrito Federal (DF)</option>
+                  <option value="GO">Goiás (GO)</option>
+                  <option value="BA">Bahia (BA)</option>
+                  <option value="PR">Paraná (PR)</option>
+                  <option value="RS">Rio Grande do Sul (RS)</option>
+                  <option value="SC">Santa Catarina (SC)</option>
+                  <option value="ES">Espírito Santo (ES)</option>
+                  <option value="CE">Ceará (CE)</option>
+                  <option value="PE">Pernambuco (PE)</option>
+                  <option value="MT">Mato Grosso (MT)</option>
+                  <option value="MS">Mato Grosso do Sul (MS)</option>
+                  <option value="AM">Amazonas (AM)</option>
+                  <option value="PA">Pará (PA)</option>
+                  <option value="Outro">Outro Estado</option>
+                </select>
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label" for="regPin">
+                  <span>🔒</span> Crie um PIN de Segurança (4 dígitos) *
+                </label>
+                <input 
+                  type="password" 
+                  id="regPin" 
+                  class="form-input" 
+                  placeholder="Ex: 1234" 
+                  maxlength="4" 
+                  pattern="[0-9]{4}" 
+                  required
+                >
+                <span class="form-hint">Guarde este PIN para poder alterar ou remover seu cadastro caso venda o veículo.</span>
+              </div>
+
+            </div>
+
+            <div class="form-consent">
+              <input type="checkbox" id="regConsent" required>
+              <label for="regConsent">
+                Concordo em disponibilizar meu contato para receber mensagens de utilidade pública relacionadas ao meu veículo caso alguém encontre minha placa ou precise me avisar sobre alarmes e ocorrências.
+              </label>
+            </div>
+
+            <button type="submit" class="submit-btn" id="btnSubmitRegister">
+              <span>Cadastrar Meu Veículo Gratuitamente</span> ➔
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         Seção de Utilidade Pública & Dicas
+         ========================================================================== -->
+    <section class="section" id="tipsSection" style="background: hsla(220, 38%, 9%, 0.5);">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Utilidade Pública & Orientações</h2>
+          <p class="section-subtitle">
+            Informações importantes para motoristas e cidadãos de bem.
+          </p>
+        </div>
+
+        <div class="tips-grid">
+          
+          <article class="tip-card">
+            <div class="tip-icon">🪪</div>
+            <h3 class="tip-title">Perdeu a Placa do Carro?</h3>
+            <p class="tip-desc">
+              Dirigir sem uma das placas é infração gravíssima com multa e apreensão do veículo. O procedimento legal exige:
+            </p>
+            <ul class="tip-steps">
+              <li>Registrar Boletim de Ocorrência (B.O.) online por perda/extravio.</li>
+              <li>Acessar o portal do Detran do seu Estado para solicitar 2ª via da placa.</li>
+              <li>Fazer vistoria veicular e levar a autorização a uma estamparia credenciada.</li>
+            </ul>
+          </article>
+
+          <article class="tip-card">
+            <div class="tip-icon">🤝</div>
+            <h3 class="tip-title">Achou uma Placa na Rua?</h3>
+            <p class="tip-desc">
+              Você pode poupar centenas de reais e dias de dor de cabeça para o dono:
+            </p>
+            <ul class="tip-steps">
+              <li>Digite a placa aqui no <strong>Placa Perdida</strong> para achar o proprietário.</li>
+              <li>Se encontrar o cadastro, mande um WhatsApp avisando onde você está.</li>
+              <li>Caso não encontre cadastro, entregue a placa no posto policial ou batalhão mais próximo.</li>
+            </ul>
+          </article>
+
+          <article class="tip-card">
+            <div class="tip-icon">🛡️</div>
+            <h3 class="tip-title">Cidadania & Honestidade</h3>
+            <p class="tip-desc">
+              Situações do dia a dia onde nosso sistema ajuda quem tem boa fé:
+            </p>
+            <ul class="tip-steps">
+              <li><strong>Alarme disparado:</strong> Vizinhos e pedestres avisam antes de a bateria descarregar.</li>
+              <li><strong>Esbarrão em estacionamento:</strong> Deixe seu contato no WhatsApp para pagar o reparo.</li>
+              <li><strong>Vidro aberto / Luz acesa:</strong> Prevenção contra furtos ou chuva inesperada.</li>
+            </ul>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         Espaço Publicitário & Monetização (Banners)
+         ========================================================================== -->
+    <section class="ads-section" id="adsSection">
+      <div class="container">
+        
+        <div class="ads-header-banner">
+          <div class="ads-title-wrapper">
+            <span class="ads-badge">Espaço Patrocinado</span>
+            <h2 class="ads-heading">Serviços Automotivos Recomendados</h2>
+          </div>
+          <button class="btn-advertise" id="btnOpenAdModal" onclick="window.app.openAdModal()">
+            <span>📢</span> Anuncie Sua Empresa Aqui
+          </button>
+        </div>
+
+        <!-- Grid de Anúncios Injetados Automaticamente -->
+        <div class="ads-grid" id="adsGridContainer">
+          <!-- Renderizado via app.js a partir do ads-config.js -->
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- ==========================================================================
+       Modais: Anuncie Aqui & Edição de Cadastro
+       ========================================================================== -->
+  <div class="modal-overlay" id="adModal">
+    <div class="modal-box">
+      <button class="modal-close-btn" onclick="window.app.closeAdModal()">✕</button>
+      <h3 class="modal-title">Divulgue no Placa Perdida</h3>
+      <p class="modal-desc">
+        Alcance motoristas, proprietários e pessoas que buscam serviços automotivos todos os dias. Espaço ideal para:
+      </p>
+      <ul style="list-style: none; margin-bottom: 20px; font-size: 0.9rem; color: var(--text-muted);">
+        <li style="margin-bottom: 8px;">🛡️ <strong>Seguradoras & Associações Veiculares</strong></li>
+        <li style="margin-bottom: 8px;">🔑 <strong>Chaveiros Automotivos 24 Horas</strong></li>
+        <li style="margin-bottom: 8px;">🚛 <strong>Guinchos, Reboques & Auto Socorro</strong></li>
+        <li style="margin-bottom: 8px;">🔧 <strong>Oficinas Mecânicas & Martelinho de Ouro</strong></li>
+      </ul>
+      <p style="font-size: 0.88rem; color: var(--accent-emerald); font-weight: 600; margin-bottom: 20px;">
+        Planos mensais acessíveis com banner exclusivo e botão direto pro seu WhatsApp comercial!
+      </p>
+      <button class="submit-btn" onclick="window.app.contactAdminForAds()">
+        <span>Conversar com a Equipe Comercial</span> ➔
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal para Gerenciar / Excluir Cadastro -->
+  <div class="modal-overlay" id="manageModal">
+    <div class="modal-box">
+      <button class="modal-close-btn" onclick="window.app.closeManageModal()">✕</button>
+      <h3 class="modal-title">Gerenciar Cadastro do Veículo</h3>
+      <p class="modal-desc" id="manageModalSubtitle">
+        Informe o PIN de 4 dígitos criado no momento do cadastro para editar ou excluir.
+      </p>
+      <form id="manageForm" onsubmit="event.preventDefault(); window.app.handleManageAction();">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" for="managePinInput">PIN de Segurança (4 dígitos):</label>
+          <input type="password" id="managePinInput" class="form-input" maxlength="4" placeholder="Ex: 1234" required>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="search-btn" style="background: hsl(350, 89%, 60%); color: #fff; flex: 1; justify-content: center;" onclick="window.app.deleteCurrentPlate()">
+            Excluir Cadastro
+          </button>
+          <button type="submit" class="search-btn" style="flex: 1; justify-content: center;">
+            Confirmar PIN
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" aria-live="assertive"></div>
+
+  <!-- ==========================================================================
+       Rodapé
+       ========================================================================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="brand" style="justify-content: center; margin-bottom: 12px;">
+        <span class="brand-title">Placa Perdida</span>
+      </div>
+      <p class="footer-disclaimer">
+        O <strong>Placa Perdida</strong> é um serviço colaborativo comunitário e de utilidade pública independente, sem qualquer ligação com órgãos governamentais ou o Detran. As informações são cadastradas voluntariamente pelos próprios proprietários.
+      </p>
+      <p class="footer-copy">
+        © 2026 Placa Perdida • Todos os direitos reservados • Hospedado 24/7 na Nuvem
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="db.js"></script>
+  <script src="ads-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
