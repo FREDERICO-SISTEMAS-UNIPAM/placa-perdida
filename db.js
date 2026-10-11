@@ -1,9 +1,11 @@
 /**
  * Módulo de Banco de Dados - Placa Perdida
- * Suporta persistência local resiliente e sincronização em nuvem.
+ * Suporta persistência local resiliente, sincronização global via Firebase
+ * e importação/exportação instantânea via URL/QR Code entre celular e computador.
  */
 
 const STORAGE_KEY = 'placa_perdida_veiculos_v1';
+const FIREBASE_URL_KEY = 'placa_perdida_firebase_url';
 
 // Dados iniciais de demonstração para testes imediatos
 const INITIAL_VEHICLES = [
@@ -47,7 +49,6 @@ const INITIAL_VEHICLES = [
 
 class PlacaDB {
   constructor() {
-    this.cloudConfig = null;
     this.init();
   }
 
@@ -63,6 +64,31 @@ class PlacaDB {
     }
   }
 
+  // Obtém a URL do Firebase configurada
+  getFirebaseUrl() {
+    try {
+      const custom = localStorage.getItem(FIREBASE_URL_KEY);
+      if (custom && custom.trim()) return custom.trim().replace(/\/+$/, '');
+    } catch (e) {}
+
+    if (window.CLOUD_CONFIG && window.CLOUD_CONFIG.firebaseUrl) {
+      return window.CLOUD_CONFIG.firebaseUrl.trim().replace(/\/+$/, '');
+    }
+    return '';
+  }
+
+  setFirebaseUrl(url) {
+    const clean = (url || '').trim().replace(/\/+$/, '');
+    try {
+      if (clean) {
+        localStorage.setItem(FIREBASE_URL_KEY, clean);
+      } else {
+        localStorage.removeItem(FIREBASE_URL_KEY);
+      }
+    } catch (e) {}
+    return clean;
+  }
+
   // Normaliza placa (remove traços, espaços e converte para maiúsculo)
   cleanPlate(plate) {
     if (!plate) return '';
@@ -73,11 +99,9 @@ class PlacaDB {
   formatPlate(cleanPlate) {
     cleanPlate = this.cleanPlate(cleanPlate);
     if (cleanPlate.length === 7) {
-      // Padrão antigo: ABC1234 -> ABC-1234
       if (/^[A-Z]{3}[0-9]{4}$/.test(cleanPlate)) {
         return `${cleanPlate.slice(0, 3)}-${cleanPlate.slice(3)}`;
       }
-      // Mercosul: ABC1D23
       return cleanPlate;
     }
     return cleanPlate;
@@ -87,7 +111,7 @@ class PlacaDB {
     return /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/.test(cleanPlate);
   }
 
-  getAll() {
+  getAllLocal() {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
       return data ? JSON.parse(data) : (this.memoryDb || INITIAL_VEHICLES);
@@ -96,32 +120,57 @@ class PlacaDB {
     }
   }
 
-  saveAll(vehicles) {
+  saveAllLocal(vehicles) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles));
     } catch (e) {
       this.memoryDb = vehicles;
     }
-    // Dispara evento de sincronização se configurado
-    this.syncToCloud(vehicles);
   }
 
-  buscarPlaca(placaBuscada) {
+  // Busca placa (primeiro na nuvem, com fallback local instantâneo)
+  async buscarPlaca(placaBuscada) {
     const limpa = this.cleanPlate(placaBuscada);
     if (!limpa) return null;
 
-    const lista = this.getAll();
+    const firebaseUrl = this.getFirebaseUrl();
+    if (firebaseUrl) {
+      try {
+        const res = await fetch(`${firebaseUrl}/veiculos/${limpa}.json`);
+        if (res.ok) {
+          const cloudData = await res.json();
+          if (cloudData && cloudData.placa) {
+            // Atualiza cache local
+            const local = this.getAllLocal();
+            const idx = local.findIndex(v => this.cleanPlate(v.placa) === limpa);
+            if (idx >= 0) {
+              local[idx] = cloudData;
+            } else {
+              local.push(cloudData);
+            }
+            this.saveAllLocal(local);
+            return { ...cloudData };
+          }
+        }
+      } catch (err) {
+        console.warn('Erro ao consultar Firebase:', err);
+      }
+    }
+
+    // Consulta base local
+    const lista = this.getAllLocal();
     const veiculo = lista.find(v => this.cleanPlate(v.placa) === limpa);
     return veiculo ? { ...veiculo } : null;
   }
 
-  cadastrar(veiculo) {
+  // Cadastra novo veículo (salva no banco local e na nuvem)
+  async cadastrar(veiculo) {
     const limpa = this.cleanPlate(veiculo.placa);
     if (!limpa || limpa.length !== 7) {
       throw new Error('A placa deve conter exatamente 7 caracteres válidos (Mercosul ou padrão antigo).');
     }
 
-    const lista = this.getAll();
+    const lista = this.getAllLocal();
     const existe = lista.some(v => this.cleanPlate(v.placa) === limpa);
     if (existe) {
       throw new Error('Esta placa já está cadastrada! Para alterar os dados, utilize a opção "Gerenciar Meu Cadastro" com seu PIN.');
@@ -141,13 +190,29 @@ class PlacaDB {
     };
 
     lista.push(novoVeiculo);
-    this.saveAll(lista);
+    this.saveAllLocal(lista);
+
+    // Salva na nuvem se Firebase estiver ativo
+    const firebaseUrl = this.getFirebaseUrl();
+    if (firebaseUrl) {
+      try {
+        await fetch(`${firebaseUrl}/veiculos/${limpa}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(novoVeiculo)
+        });
+      } catch (err) {
+        console.warn('Erro ao salvar no Firebase:', err);
+      }
+    }
+
     return novoVeiculo;
   }
 
-  atualizar(placa, pin, novosDados) {
+  // Atualiza veículo
+  async atualizar(placa, pin, novosDados) {
     const limpa = this.cleanPlate(placa);
-    const lista = this.getAll();
+    const lista = this.getAllLocal();
     const index = lista.findIndex(v => this.cleanPlate(v.placa) === limpa);
 
     if (index === -1) {
@@ -161,18 +226,31 @@ class PlacaDB {
     lista[index] = {
       ...lista[index],
       ...novosDados,
-      placa: limpa, // Não permite mudar placa diretamente
+      placa: limpa,
       whatsapp: novosDados.whatsapp ? novosDados.whatsapp.replace(/\D/g, '') : lista[index].whatsapp,
       atualizadoEm: new Date().toISOString()
     };
 
-    this.saveAll(lista);
+    this.saveAllLocal(lista);
+
+    const firebaseUrl = this.getFirebaseUrl();
+    if (firebaseUrl) {
+      try {
+        await fetch(`${firebaseUrl}/veiculos/${limpa}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(lista[index])
+        });
+      } catch (err) {}
+    }
+
     return lista[index];
   }
 
-  excluir(placa, pin) {
+  // Exclui veículo
+  async excluir(placa, pin) {
     const limpa = this.cleanPlate(placa);
-    const lista = this.getAll();
+    const lista = this.getAllLocal();
     const index = lista.findIndex(v => this.cleanPlate(v.placa) === limpa);
 
     if (index === -1) {
@@ -184,22 +262,51 @@ class PlacaDB {
     }
 
     lista.splice(index, 1);
-    this.saveAll(lista);
+    this.saveAllLocal(lista);
+
+    const firebaseUrl = this.getFirebaseUrl();
+    if (firebaseUrl) {
+      try {
+        await fetch(`${firebaseUrl}/veiculos/${limpa}.json`, {
+          method: 'DELETE'
+        });
+      } catch (err) {}
+    }
+
     return true;
   }
 
-  // Hook preparado para sincronização em nuvem
-  syncToCloud(vehicles) {
-    if (this.cloudConfig && this.cloudConfig.endpoint) {
-      try {
-        fetch(this.cloudConfig.endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ vehicles })
-        }).catch(err => console.debug('Sync cloud silencioso:', err));
-      } catch (err) {
-        // silencioso
+  // Cria payload portátil codificado para transferir o veículo para outro dispositivo via link/QR Code
+  createSharePayload(veiculo) {
+    try {
+      const json = JSON.stringify(veiculo);
+      return btoa(encodeURIComponent(json));
+    } catch (e) {
+      return '';
+    }
+  }
+
+  // Importa veículo a partir do payload recebido por link ou QR Code
+  importFromPayload(payloadString) {
+    try {
+      const json = decodeURIComponent(atob(payloadString));
+      const veiculo = JSON.parse(json);
+      if (!veiculo || !veiculo.placa) return null;
+
+      const limpa = this.cleanPlate(veiculo.placa);
+      const lista = this.getAllLocal();
+      const idx = lista.findIndex(v => this.cleanPlate(v.placa) === limpa);
+
+      if (idx >= 0) {
+        lista[idx] = { ...lista[idx], ...veiculo, placa: limpa };
+      } else {
+        lista.push({ ...veiculo, placa: limpa });
       }
+      this.saveAllLocal(lista);
+      return veiculo;
+    } catch (e) {
+      console.error('Falha ao decodificar payload de veículo:', e);
+      return null;
     }
   }
 }

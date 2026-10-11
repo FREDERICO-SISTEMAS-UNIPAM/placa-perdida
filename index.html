@@ -43,8 +43,11 @@
         <a href="#registerSection" class="nav-btn nav-btn-highlight" id="navBtnRegister">
           <span>➕</span> Cadastrar Meu Veículo
         </a>
+        <button type="button" class="nav-btn" id="navBtnCloud" onclick="window.app.openCloudModal()">
+          <span>☁️</span> Sincronizar Nuvem
+        </button>
         <a href="#tipsSection" class="nav-btn" id="navBtnTips">
-          <span>💡</span> Utilidade Pública
+          <span>💡</span> Utilidade
         </a>
         <a href="#adsSection" class="nav-btn" id="navBtnAds">
           <span>📢</span> Anuncie
@@ -383,8 +386,72 @@
   </main>
 
   <!-- ==========================================================================
-       Modais: Anuncie Aqui & Edição de Cadastro
+       Modais
        ========================================================================== -->
+
+  <!-- Modal: Compartilhar / Enviar pro Celular com QR Code -->
+  <div class="modal-overlay" id="shareModal">
+    <div class="modal-box" style="text-align: center;">
+      <button class="modal-close-btn" onclick="window.app.closeShareModal()">✕</button>
+      <h3 class="modal-title">📲 Abrir no Celular</h3>
+      <p class="modal-desc">
+        Aponte a câmera do seu celular para o QR Code abaixo para abrir e salvar este cadastro no seu celular instantaneamente!
+      </p>
+      
+      <div style="background: #ffffff; padding: 14px; border-radius: 12px; display: inline-block; margin: 10px auto 16px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <img id="shareQrImage" src="" alt="QR Code da Placa" style="width: 190px; height: 190px; display: block;">
+      </div>
+
+      <div style="margin-top: 10px;">
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">Ou copie o link direto para enviar pelo WhatsApp:</p>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="shareLinkInput" class="form-input" readonly style="font-size: 0.8rem; background: var(--bg-primary);">
+          <button type="button" class="search-btn" style="padding: 10px 16px; font-size: 0.85rem;" onclick="window.app.copyShareLink()">
+            Copiar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Conectar Banco em Nuvem (Firebase) -->
+  <div class="modal-overlay" id="cloudModal">
+    <div class="modal-box">
+      <button class="modal-close-btn" onclick="window.app.closeCloudModal()">✕</button>
+      <h3 class="modal-title">☁️ Sincronização em Nuvem Global</h3>
+      <p class="modal-desc">
+        Conecte um banco gratuito do <strong>Google Firebase Realtime Database</strong> para que qualquer placa cadastrada em qualquer computador ou celular fique sincronizada em tempo real no Brasil inteiro!
+      </p>
+
+      <form onsubmit="event.preventDefault(); window.app.saveCloudUrl();">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" for="firebaseUrlInput">URL do seu Firebase Realtime Database:</label>
+          <input 
+            type="url" 
+            id="firebaseUrlInput" 
+            class="form-input" 
+            placeholder="https://seu-projeto-default-rtdb.firebaseio.com"
+          >
+          <span class="form-hint">Deixe em branco para usar armazenamento local com compartilhamento por link/QR Code.</span>
+        </div>
+
+        <div style="background: hsla(217, 33%, 30%, 0.2); padding: 14px; border-radius: 8px; margin-bottom: 20px; font-size: 0.85rem; color: var(--text-muted);">
+          <strong style="color: var(--accent-cyan); display: block; margin-bottom: 6px;">Como criar seu banco gratuito em 1 minuto:</strong>
+          1. Acesse <a href="https://console.firebase.google.com" target="_blank" style="color: var(--accent-emerald); text-decoration: underline;">console.firebase.google.com</a> com sua conta Google.<br>
+          2. Clique em <strong>Criar projeto</strong> (ex: "placa-perdida").<br>
+          3. No menu lateral, clique em <strong>Realtime Database</strong> &gt; <strong>Criar banco de dados</strong>.<br>
+          4. Escolha <strong>Modo de teste</strong> e copie a URL gerada (terminada em <code>.firebaseio.com</code>).<br>
+          5. Cole aqui e clique em Salvar!
+        </div>
+
+        <button type="submit" class="submit-btn">
+          Salvar Conexão em Nuvem
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Anuncie Aqui -->
   <div class="modal-overlay" id="adModal">
     <div class="modal-box">
       <button class="modal-close-btn" onclick="window.app.closeAdModal()">✕</button>
@@ -453,6 +520,7 @@
   </footer>
 
   <!-- Scripts -->
+  <script src="cloud-config.js"></script>
   <script src="db.js"></script>
   <script src="ads-config.js"></script>
   <script src="app.js"></script>

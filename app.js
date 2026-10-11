@@ -1,6 +1,6 @@
 /**
  * Lógica Principal - Placa Perdida
- * Máscaras, busca em tempo real, integração WhatsApp e renderização dinâmica.
+ * Máscaras, busca em tempo real, integração WhatsApp, sincronização em nuvem e QR Code.
  */
 
 class PlacaApp {
@@ -14,8 +14,21 @@ class PlacaApp {
     this.setupPhoneMasks();
     this.renderAds();
     
-    // Suporte ao carregamento de URL com parâmetro ?p=ABC1234
+    // Verifica parâmetros de URL
     const urlParams = new URLSearchParams(window.location.search);
+    
+    // Importação direta via payload codificado (ex: vindo de QR Code ou link compartilhado)
+    const importPayload = urlParams.get('import');
+    if (importPayload) {
+      const veiculoImportado = window.placaDB.importFromPayload(importPayload);
+      if (veiculoImportado) {
+        this.showToast(`Veículo ${veiculoImportado.placa} recebido e sincronizado no seu celular!`, 'success');
+        this.fillSearch(veiculoImportado.placa);
+        return;
+      }
+    }
+
+    // Busca direta por parâmetro ?p=ABC1234
     const initialPlate = urlParams.get('p') || urlParams.get('placa');
     if (initialPlate) {
       this.fillSearch(initialPlate);
@@ -106,8 +119,8 @@ class PlacaApp {
     }
   }
 
-  // Executa a busca de placa no banco de dados
-  handleSearch() {
+  // Executa a busca de placa no banco de dados (async com suporte a nuvem)
+  async handleSearch() {
     const input = document.getElementById('plateSearchInput');
     if (!input || !input.value.trim()) {
       this.showToast('Por favor, digite uma placa para buscar.', 'error');
@@ -119,10 +132,17 @@ class PlacaApp {
     const container = document.getElementById('resultsContainer');
     if (!resultsSection || !container) return;
 
-    const veiculo = window.placaDB.buscarPlaca(query);
-    this.currentPlateInView = veiculo;
-
+    // Feedback visual de carregamento
     resultsSection.style.display = 'block';
+    container.innerHTML = `
+      <div class="result-card" style="text-align: center; padding: 30px;">
+        <div style="font-size: 2rem; margin-bottom: 10px;">⏳</div>
+        <p style="color: var(--text-muted);">Consultando placa na rede e na nuvem...</p>
+      </div>
+    `;
+
+    const veiculo = await window.placaDB.buscarPlaca(query);
+    this.currentPlateInView = veiculo;
 
     if (veiculo) {
       const placaFormatada = window.placaDB.formatPlate(veiculo.placa);
@@ -147,9 +167,14 @@ class PlacaApp {
               </h2>
             </div>
             
-            <button class="quick-tag-btn" style="padding: 8px 14px; font-size: 0.85rem;" onclick="window.app.openManageModal('${veiculo.placa}')">
-              ⚙️ Sou o Dono (Gerenciar)
-            </button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="quick-tag-btn" style="padding: 8px 14px; font-size: 0.85rem; background: hsla(188, 94%, 48%, 0.15); border-color: var(--accent-cyan);" onclick="window.app.openShareModal()">
+                📲 Abrir no Celular / QR Code
+              </button>
+              <button class="quick-tag-btn" style="padding: 8px 14px; font-size: 0.85rem;" onclick="window.app.openManageModal('${veiculo.placa}')">
+                ⚙️ Gerenciar
+              </button>
+            </div>
           </div>
 
           <!-- Grade de Informações do Veículo -->
@@ -332,7 +357,7 @@ class PlacaApp {
   }
 
   // Cadastro de novo veículo
-  handleRegister() {
+  async handleRegister() {
     const regPlate = document.getElementById('regPlate').value;
     const regType = document.getElementById('regType').value;
     const regModel = document.getElementById('regModel').value;
@@ -350,7 +375,7 @@ class PlacaApp {
     }
 
     try {
-      const novo = window.placaDB.cadastrar({
+      const novo = await window.placaDB.cadastrar({
         placa: regPlate,
         tipo: regType,
         modelo: regModel,
@@ -368,10 +393,83 @@ class PlacaApp {
       document.getElementById('vehicleRegisterForm').reset();
 
       // Executa a busca imediatamente para mostrar o resultado ao usuário
-      this.fillSearch(novo.placa);
+      await this.fillSearch(novo.placa);
+
+      // Abre automaticamente a opção de sincronizar no celular
+      setTimeout(() => {
+        this.openShareModal();
+      }, 700);
+
     } catch (err) {
       this.showToast(err.message, 'error');
     }
+  }
+
+  // Modal de Compartilhamento / QR Code
+  openShareModal() {
+    if (!this.currentPlateInView) return;
+    const v = this.currentPlateInView;
+    const payload = window.placaDB.createSharePayload(v);
+    
+    // Constrói link direto
+    const baseUrl = window.location.origin + window.location.pathname;
+    const directUrl = `${baseUrl}?import=${payload}`;
+
+    const linkInput = document.getElementById('shareLinkInput');
+    const qrImg = document.getElementById('shareQrImage');
+    const modal = document.getElementById('shareModal');
+
+    if (linkInput) linkInput.value = directUrl;
+    if (qrImg) {
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(directUrl)}`;
+    }
+    if (modal) modal.classList.add('active');
+  }
+
+  closeShareModal() {
+    const modal = document.getElementById('shareModal');
+    if (modal) modal.classList.remove('active');
+  }
+
+  copyShareLink() {
+    const linkInput = document.getElementById('shareLinkInput');
+    if (linkInput && linkInput.value) {
+      navigator.clipboard.writeText(linkInput.value).then(() => {
+        this.showToast('Link copiado! Cole no WhatsApp ou abra no celular.', 'success');
+      }).catch(() => {
+        linkInput.select();
+        document.execCommand('copy');
+        this.showToast('Link copiado!', 'success');
+      });
+    }
+  }
+
+  // Modal de Nuvem Global (Firebase)
+  openCloudModal() {
+    const modal = document.getElementById('cloudModal');
+    const input = document.getElementById('firebaseUrlInput');
+    if (input) {
+      input.value = window.placaDB.getFirebaseUrl();
+    }
+    if (modal) modal.classList.add('active');
+  }
+
+  closeCloudModal() {
+    const modal = document.getElementById('cloudModal');
+    if (modal) modal.classList.remove('active');
+  }
+
+  saveCloudUrl() {
+    const input = document.getElementById('firebaseUrlInput');
+    const val = input ? input.value : '';
+    const saved = window.placaDB.setFirebaseUrl(val);
+
+    if (saved) {
+      this.showToast('Banco em nuvem conectado com sucesso!', 'success');
+    } else {
+      this.showToast('Modo de nuvem desativado. Usando armazenamento local e QR Code.', 'info');
+    }
+    this.closeCloudModal();
   }
 
   // Modais de Gerenciamento & PIN
@@ -388,7 +486,7 @@ class PlacaApp {
     if (modal) modal.classList.remove('active');
   }
 
-  deleteCurrentPlate() {
+  async deleteCurrentPlate() {
     const pin = document.getElementById('managePinInput').value;
     if (!pin) {
       this.showToast('Digite o PIN de 4 dígitos para autorizar a exclusão.', 'error');
@@ -400,11 +498,10 @@ class PlacaApp {
     }
 
     try {
-      window.placaDB.excluir(this.plateToManage, pin);
+      await window.placaDB.excluir(this.plateToManage, pin);
       this.showToast('Cadastro excluído com sucesso.', 'info');
       this.closeManageModal();
       
-      // Oculta área de resultados
       const resultsSection = document.getElementById('resultsSection');
       if (resultsSection) resultsSection.style.display = 'none';
     } catch (err) {
@@ -412,14 +509,14 @@ class PlacaApp {
     }
   }
 
-  handleManageAction() {
+  async handleManageAction() {
     const pin = document.getElementById('managePinInput').value;
     if (!pin) {
       this.showToast('Digite seu PIN.', 'error');
       return;
     }
 
-    const veiculo = window.placaDB.buscarPlaca(this.plateToManage);
+    const veiculo = await window.placaDB.buscarPlaca(this.plateToManage);
     if (!veiculo || veiculo.pin !== pin.trim()) {
       this.showToast('PIN incorreto.', 'error');
       return;
@@ -438,7 +535,6 @@ class PlacaApp {
     document.getElementById('regState').value = veiculo.estado;
     document.getElementById('regPin').value = veiculo.pin;
     
-    // Formata whatsapp
     const w = veiculo.whatsapp;
     if (w.length === 11) {
       document.getElementById('regWhatsapp').value = `(${w.slice(0, 2)}) ${w.slice(2, 7)}-${w.slice(7)}`;
@@ -446,8 +542,7 @@ class PlacaApp {
       document.getElementById('regWhatsapp').value = w;
     }
 
-    // Deleta o registro anterior para que possa ser salvo novamente
-    window.placaDB.excluir(veiculo.placa, pin);
+    await window.placaDB.excluir(veiculo.placa, pin);
 
     const regSection = document.getElementById('registerSection');
     if (regSection) regSection.scrollIntoView({ behavior: 'smooth' });
@@ -498,7 +593,6 @@ class PlacaApp {
     window.open(`https://wa.me/${tel}?text=${encodedMsg}`, '_blank');
   }
 
-  // Utilitário para escapar HTML contra XSS
   escapeHtml(str) {
     if (!str) return '';
     return str
@@ -509,7 +603,6 @@ class PlacaApp {
       .replace(/'/g, '&#039;');
   }
 
-  // Toast Notifications
   showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
