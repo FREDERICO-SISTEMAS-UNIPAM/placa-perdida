@@ -1309,3 +1309,4 @@ input, select, textarea {
   transition: filter .2s ease;
 }
 .enigma-cta:hover { filter: brightness(1.08); }
+.enigma-rating { margin: -4px 0 10px; font-size: .85rem; font-weight: 700; color: #d4a106; }

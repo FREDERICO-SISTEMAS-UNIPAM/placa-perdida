@@ -585,12 +585,13 @@ class PlacaApp {
         </div>
         <div class="enigma-body">
           <p class="enigma-title">${ad.titulo}</p>
+          ${ad.avaliacao ? `<p class="enigma-rating">${ad.avaliacao}</p>` : ''}
           <ul class="enigma-list">
             ${(ad.servicos || []).map(s => `<li>${s}</li>`).join('')}
           </ul>
           <div class="enigma-info">
             <a href="tel:${ad.telefoneFixo}">📞 ${ad.telefoneFixoTexto}</a>
-            <span>📍 ${ad.endereco}</span>
+            <a href="${ad.rotaUrl}" target="_blank" rel="noopener">📍 ${ad.endereco} · Ver rota</a>
           </div>
         </div>
         <button class="enigma-cta" onclick="window.app.triggerAdClick('${ad.linkWhatsApp}', '${encodeURIComponent(ad.mensagemPadrao)}')">

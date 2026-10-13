@@ -33,7 +33,9 @@ window.ADS_CONFIG = {
       ],
       telefoneFixo: '+553438257643',
       telefoneFixoTexto: '(34) 3825-7643',
-      endereco: 'Nº 579',
+      endereco: 'Av. Afonso Queiroz, 579 - Antônio Caixeta, Patos de Minas',
+      avaliacao: '4,9 ★★★★★ (186 avaliações no Google)',
+      rotaUrl: 'https://www.google.com/maps/dir/?api=1&destination=Chaveiro+Enigma+Av.+Afonso+Queiroz+579+Patos+de+Minas+MG',
       ctaText: 'Chamar no WhatsApp',
       linkWhatsApp: '5534999267863',
       mensagemPadrao: 'Olá, Chaveiro Enigma! Vi o anúncio no site e preciso de um chaveiro.'
