@@ -657,3 +657,11 @@ class PlacaApp {
 window.addEventListener('DOMContentLoaded', () => {
   window.app = new PlacaApp();
 });
+
+// Barra fixa do patrocinador aparece quando o destaque do topo sai da tela
+(function () {
+  const hero = document.getElementById('sponsorHero');
+  const bar = document.getElementById('sponsorSticky');
+  if (!hero || !bar || !('IntersectionObserver' in window)) { if (bar) bar.classList.add('visible'); return; }
+  new IntersectionObserver(([e]) => bar.classList.toggle('visible', !e.isIntersecting)).observe(hero);
+})();
