@@ -572,7 +572,33 @@ class PlacaApp {
     if (!container || !window.ADS_CONFIG || !window.ADS_CONFIG.banners) return;
 
     const banners = window.ADS_CONFIG.banners;
-    container.innerHTML = banners.map(ad => `
+    container.innerHTML = banners.map(ad => {
+      if (ad.tema === 'enigma') {
+        return `
+      <article class="ad-card ad-enigma" id="ad-${ad.id}">
+        <div class="enigma-head">
+          <div class="enigma-brand">
+            <span class="enigma-line1">CHAVEIRO</span>
+            <span class="enigma-line2">Enigma</span>
+          </div>
+          <span class="enigma-badge">24<small>HORAS</small></span>
+        </div>
+        <div class="enigma-body">
+          <p class="enigma-title">${ad.titulo}</p>
+          <ul class="enigma-list">
+            ${(ad.servicos || []).map(s => `<li>${s}</li>`).join('')}
+          </ul>
+          <div class="enigma-info">
+            <a href="tel:${ad.telefoneFixo}">📞 ${ad.telefoneFixoTexto}</a>
+            <span>📍 ${ad.endereco}</span>
+          </div>
+        </div>
+        <button class="enigma-cta" onclick="window.app.triggerAdClick('${ad.linkWhatsApp}', '${encodeURIComponent(ad.mensagemPadrao)}')">
+          💬 ${ad.ctaText}
+        </button>
+      </article>`;
+      }
+      return `
       <article class="ad-card" id="ad-${ad.id}">
         <div class="ad-card-top">
           <div class="ad-tag">
@@ -585,8 +611,8 @@ class PlacaApp {
         <button class="ad-cta-btn" onclick="window.app.triggerAdClick('${ad.linkWhatsApp}', '${encodeURIComponent(ad.mensagemPadrao)}')">
           <span>${ad.ctaText}</span> ➔
         </button>
-      </article>
-    `).join('');
+      </article>`;
+    }).join('');
   }
 
   triggerAdClick(tel, encodedMsg) {

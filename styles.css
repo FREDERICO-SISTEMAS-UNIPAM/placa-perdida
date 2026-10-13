@@ -1266,3 +1266,46 @@ input, select, textarea {
     padding: 20px 16px;
   }
 }
+
+/* ===== Patrocinador: Chaveiro Enigma ===== */
+.ad-card.ad-enigma {
+  background: #ffffff;
+  border: 1px solid #f1e3a0;
+  border-radius: 18px;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: #1f2a5c;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.ad-card.ad-enigma:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,.35); }
+.enigma-head {
+  background: #f7e23b;
+  border-bottom: 4px solid #e2234f;
+  padding: 18px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.enigma-brand { display: flex; flex-direction: column; line-height: 1; }
+.enigma-line1 { font-weight: 900; font-size: 1.5rem; letter-spacing: 1px; color: #23307a; }
+.enigma-line2 { font-weight: 800; font-size: 1.35rem; color: #e2234f; margin-top: 2px; }
+.enigma-badge {
+  background: #e2234f; color: #fff; border-radius: 999px;
+  width: 60px; height: 60px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; font-weight: 900; font-size: 1.3rem; line-height: 1;
+}
+.enigma-badge small { font-size: .55rem; letter-spacing: 1px; margin-top: 2px; }
+.enigma-body { padding: 18px 20px 6px; flex: 1; }
+.enigma-title { font-weight: 700; font-size: 1.05rem; margin: 0 0 10px; color: #1f2a5c; }
+.enigma-list { list-style: none; padding: 0; margin: 0 0 14px; }
+.enigma-list li { padding: 4px 0 4px 22px; position: relative; color: #4a5272; font-size: .92rem; }
+.enigma-list li::before { content: '✓'; position: absolute; left: 0; color: #e2234f; font-weight: 900; }
+.enigma-info { display: flex; flex-direction: column; gap: 4px; font-size: .88rem; color: #4a5272; }
+.enigma-info a { color: #23307a; font-weight: 700; text-decoration: none; }
+.enigma-cta {
+  margin: 14px 20px 20px; padding: 14px; border: none; border-radius: 12px;
+  background: #25d366; color: #fff; font-weight: 800; font-size: 1rem; cursor: pointer;
+  transition: filter .2s ease;
+}
+.enigma-cta:hover { filter: brightness(1.08); }

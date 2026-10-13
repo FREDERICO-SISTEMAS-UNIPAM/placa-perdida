@@ -22,15 +22,21 @@ window.ADS_CONFIG = {
       mensagemPadrao: 'Olá! Vi o anúncio no Placa Perdida e quero simular um seguro para meu veículo.'
     },
     {
-      id: 'chaveiro-1',
-      categoria: 'Chaveiro Automotivo 24h',
-      titulo: 'Trancou a chave dentro do carro? Atendimento Rápido!',
-      descricao: 'Abertura técnica de veículos nacionais e importados sem arranhões. Cópia de chaves codificadas e telecomandos.',
-      icone: '🔑',
-      tag: 'Emergência 24 Horas',
-      ctaText: 'Chamar Chaveiro Agora',
-      linkWhatsApp: '5534999999999',
-      mensagemPadrao: 'Olá! Vi o anúncio de Chaveiro no Placa Perdida e preciso de atendimento de emergência.'
+      id: 'chaveiro-enigma',
+      tema: 'enigma',
+      categoria: 'Chaveiro 24h',
+      titulo: 'Perdeu a chave ou trancou dentro do carro?',
+      servicos: [
+        'Abertura de veículos e residências',
+        'Cópia de chaves codificadas',
+        'Controles e telecomandos'
+      ],
+      telefoneFixo: '+553438257643',
+      telefoneFixoTexto: '(34) 3825-7643',
+      endereco: 'Nº 579',
+      ctaText: 'Chamar no WhatsApp',
+      linkWhatsApp: '5534999267863',
+      mensagemPadrao: 'Olá, Chaveiro Enigma! Vi o anúncio no site e preciso de um chaveiro.'
     },
     {
       id: 'guincho-1',
